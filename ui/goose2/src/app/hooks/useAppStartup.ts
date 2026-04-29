@@ -7,12 +7,6 @@ import { setNotificationHandler, getClient } from "@/shared/api/acpConnection";
 import notificationHandler from "@/shared/api/acpNotificationHandler";
 import { perfLog } from "@/shared/lib/perfLog";
 
-const INVENTORY_POLL_DELAYS_MS = [250, 500, 750, 1000, 1500, 2000];
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
 export function useAppStartup() {
   useEffect(() => {
     (async () => {
@@ -81,55 +75,6 @@ export function useAppStartup() {
         }
       };
 
-      const refreshConfiguredProviderInventory = async (
-        initialEntries?: Awaited<ReturnType<typeof loadProvidersAndInventory>>,
-      ) => {
-        try {
-          const entries =
-            initialEntries && initialEntries.length > 0
-              ? initialEntries
-              : await (async () => {
-                  const { getProviderInventory } = await import(
-                    "@/features/providers/api/inventory"
-                  );
-                  return getProviderInventory();
-                })();
-          const configuredProviderIds = entries
-            .filter((entry) => entry.configured)
-            .map((entry) => entry.providerId);
-          if (configuredProviderIds.length === 0) {
-            return;
-          }
-
-          const { getProviderInventory, refreshProviderInventory } =
-            await import("@/features/providers/api/inventory");
-          const refresh = await refreshProviderInventory(configuredProviderIds);
-          if (refresh.started.length === 0) {
-            return;
-          }
-
-          inventoryStore.mergeEntries(
-            await getProviderInventory(refresh.started),
-          );
-
-          for (const delayMs of INVENTORY_POLL_DELAYS_MS) {
-            await sleep(delayMs);
-            const refreshedEntries = await getProviderInventory(
-              refresh.started,
-            );
-            inventoryStore.mergeEntries(refreshedEntries);
-            if (refreshedEntries.every((entry) => !entry.refreshing)) {
-              return;
-            }
-          }
-        } catch (err) {
-          console.error(
-            "Failed to refresh provider inventory on startup:",
-            err,
-          );
-        }
-      };
-
       const loadSessionState = async () => {
         const t0 = performance.now();
         perfLog("[perf:startup] loadSessionState start");
@@ -149,9 +94,19 @@ export function useAppStartup() {
         providersAndInventoryLoad,
         loadSessionState(),
       ]);
-      void providersAndInventoryLoad.then((entries) =>
-        refreshConfiguredProviderInventory(entries),
-      );
+      void providersAndInventoryLoad.then(async (entries) => {
+        try {
+          const { backgroundRefreshInventory } = await import(
+            "@/features/providers/api/inventory"
+          );
+          await backgroundRefreshInventory(inventoryStore, entries);
+        } catch (err) {
+          console.error(
+            "Failed to refresh provider inventory on startup:",
+            err,
+          );
+        }
+      });
       perfLog(
         `[perf:startup] useAppStartup complete in ${(performance.now() - tStartup).toFixed(1)}ms`,
       );
