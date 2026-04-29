@@ -178,8 +178,15 @@ function streamReducer(state: StreamState, action: StreamAction): StreamState {
 
 function pushMessage(currentMessages: Message[], incomingMsg: Message): Message[] {
   const lastMsg = currentMessages[currentMessages.length - 1];
+  const shouldMergeMessage =
+    lastMsg?.id && lastMsg.id === incomingMsg.id
+      ? true
+      : !lastMsg?.id &&
+        !incomingMsg.id &&
+        lastMsg?.role === 'assistant' &&
+        incomingMsg.role === 'assistant';
 
-  if (lastMsg?.id && lastMsg.id === incomingMsg.id) {
+  if (lastMsg && shouldMergeMessage) {
     const lastContent = lastMsg.content[lastMsg.content.length - 1];
     const newContent = incomingMsg.content[incomingMsg.content.length - 1];
 

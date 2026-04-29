@@ -43,11 +43,14 @@ impl Conversation {
     }
 
     pub fn push(&mut self, message: Message) {
-        if let Some(last) = self
-            .0
-            .last_mut()
-            .filter(|m| m.id.is_some() && m.id == message.id)
-        {
+        if let Some(last) = self.0.last_mut().filter(|m| {
+            (m.id.is_some() && m.id == message.id)
+                || (m.id.is_none()
+                    && message.id.is_none()
+                    && m.role == Role::Assistant
+                    && message.role == Role::Assistant
+                    && m.metadata == message.metadata)
+        }) {
             match (last.content.last_mut(), message.content.last()) {
                 (Some(MessageContent::Text(ref mut last)), Some(MessageContent::Text(new)))
                     if message.content.len() == 1 =>
@@ -633,6 +636,27 @@ mod tests {
                     i
                 );
             }
+        }
+    }
+
+    #[test]
+    fn test_push_merges_streamed_assistant_text_chunks_without_ids() {
+        use crate::conversation::message::MessageContent;
+
+        let mut conversation = Conversation::empty();
+
+        conversation.push(Message::user().with_text("hello"));
+        conversation.push(Message::assistant().with_text("你"));
+        conversation.push(Message::assistant().with_text("好"));
+        conversation.push(Message::assistant().with_text("。"));
+
+        assert_eq!(conversation.len(), 2);
+
+        let assistant = &conversation.messages()[1];
+        assert_eq!(assistant.content.len(), 1);
+        match &assistant.content[0] {
+            MessageContent::Text(text) => assert_eq!(text.text, "你好。"),
+            _ => panic!("expected assistant text content"),
         }
     }
 

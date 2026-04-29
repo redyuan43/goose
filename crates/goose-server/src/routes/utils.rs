@@ -129,6 +129,13 @@ pub fn check_provider_configured(metadata: &ProviderMetadata, provider_type: Pro
 
     // Special case: Zero-config providers (no config keys)
     if metadata.config_keys.is_empty() {
+        if matches!(
+            config.get_param::<String>("GOOSE_PROVIDER"),
+            Ok(provider) if provider == metadata.name
+        ) {
+            return true;
+        }
+
         // Check if the provider has been explicitly configured via the UI
         let configured_marker = format!("{}_configured", metadata.name);
         return config.get_param::<bool>(&configured_marker).is_ok();

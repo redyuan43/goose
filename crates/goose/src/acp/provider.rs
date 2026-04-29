@@ -7,8 +7,8 @@ use rmcp::model::{CallToolRequestParams, CallToolResult, Content as RmcpContent,
 use sacp::schema::{
     ClientCapabilities, CloseSessionRequest, ContentBlock, ContentChunk, EnvVariable, HttpHeader,
     ImageContent, InitializeRequest, InitializeResponse, McpCapabilities, McpServer, McpServerHttp,
-    McpServerStdio, NewSessionRequest, NewSessionResponse, PromptRequest, PromptResponse,
-    ProtocolVersion, RequestPermissionOutcome, RequestPermissionRequest, RequestPermissionResponse,
+    McpServerStdio, NewSessionRequest, NewSessionResponse, PromptRequest, ProtocolVersion,
+    RequestPermissionOutcome, RequestPermissionRequest, RequestPermissionResponse,
     SessionConfigKind, SessionConfigOption, SessionConfigOptionCategory,
     SessionConfigSelectOptions, SessionId, SessionNotification, SessionUpdate,
     SetSessionConfigOptionRequest, SetSessionModeRequest, SetSessionModeResponse, StopReason,
@@ -23,6 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use tokio::process::{Child, Command};
 use tokio::sync::{mpsc, oneshot, Mutex as TokioMutex};
+use tokio::time::{timeout, Duration};
 use tokio_util::compat::{TokioAsyncReadCompatExt as _, TokioAsyncWriteCompatExt as _};
 
 use crate::acp::{map_permission_response, PermissionDecision};
@@ -37,6 +38,8 @@ use crate::subprocess::configure_subprocess;
 
 /// Sentinel: resolved to the actual model name during connect().
 pub const ACP_CURRENT_MODEL: &str = "current";
+const DEFAULT_ACP_PROMPT_TIMEOUT_SECS: u64 = 120;
+const ACP_PROMPT_TIMEOUT_ENV: &str = "GOOSE_ACP_PROMPT_TIMEOUT";
 
 pub struct AcpProviderConfig {
     pub command: PathBuf,
@@ -105,6 +108,14 @@ enum AcpUpdate {
     },
     Complete(StopReason, Option<AcpUsage>),
     Error(String),
+}
+
+fn acp_prompt_timeout_secs() -> u64 {
+    std::env::var(ACP_PROMPT_TIMEOUT_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(DEFAULT_ACP_PROMPT_TIMEOUT_SECS)
 }
 
 /// Per-tool-call buffer for accumulating ACP ToolCallUpdate fields across
@@ -232,6 +243,19 @@ impl AcpProvider {
         let response = session_rx
             .await
             .context("ACP session creation cancelled")??;
+
+        if model.model_name != ACP_CURRENT_MODEL {
+            let (config_tx, config_rx) = oneshot::channel();
+            tx.send(ClientRequest::SetConfigOption {
+                session_id: response.session_id.clone(),
+                config_id: "model".to_string(),
+                value: model.model_name.clone(),
+                response_tx: config_tx,
+            })
+            .await
+            .context("ACP client is unavailable")?;
+            config_rx.await.context("ACP model selection cancelled")??;
+        }
 
         // Resolve model from the session response.
         let resolved_model = if model.model_name == ACP_CURRENT_MODEL {
@@ -419,12 +443,24 @@ impl Provider for AcpProvider {
 
         let reject_all_tools = goose_mode == GooseMode::Chat;
         let model_name = model_config.model_name.clone();
+        let prompt_timeout_secs = acp_prompt_timeout_secs();
 
         Ok(Box::pin(try_stream! {
             let mut suppress_text = false;
             let mut rejected_tool_calls: HashSet<String> = HashSet::new();
 
-            while let Some(update) = rx.recv().await {
+            loop {
+                let update = match timeout(Duration::from_secs(prompt_timeout_secs), rx.recv()).await {
+                    Ok(Some(update)) => update,
+                    Ok(None) => break,
+                    Err(_) => {
+                        Err(ProviderError::RequestFailed(format!(
+                            "ACP provider timed out after {prompt_timeout_secs}s without a response update"
+                        )))?;
+                        break;
+                    }
+                };
+
                 match update {
                     AcpUpdate::Text(text) => {
                         if !suppress_text {
@@ -557,6 +593,10 @@ impl Provider for AcpProvider {
     async fn fetch_supported_models(&self) -> Result<Vec<String>, ProviderError> {
         let (_, available) = resolve_model_info(&self.name, &self.session.response)?;
         Ok(available)
+    }
+
+    fn skip_canonical_filtering(&self) -> bool {
+        true
     }
 }
 
@@ -973,21 +1013,32 @@ async fn handle_requests(
             } => {
                 *prompt_response_tx.lock().unwrap() = Some(response_tx.clone());
 
-                let response: Result<PromptResponse, _> = cx
-                    .send_request(PromptRequest::new(session_id, content))
-                    .block_task()
-                    .await;
+                let prompt_timeout_secs = acp_prompt_timeout_secs();
+                let response = timeout(
+                    Duration::from_secs(prompt_timeout_secs),
+                    cx.send_request(PromptRequest::new(session_id, content))
+                        .block_task(),
+                )
+                .await;
 
                 match response {
-                    Ok(r) => {
+                    Ok(Ok(r)) => {
                         log_undelivered(
                             response_tx.try_send(AcpUpdate::Complete(r.stop_reason, r.usage)),
                             AGENT_METHOD_NAMES.session_prompt,
                         );
                     }
-                    Err(e) => {
+                    Ok(Err(e)) => {
                         log_undelivered(
                             response_tx.try_send(AcpUpdate::Error(e.to_string())),
+                            AGENT_METHOD_NAMES.session_prompt,
+                        );
+                    }
+                    Err(_) => {
+                        log_undelivered(
+                            response_tx.try_send(AcpUpdate::Error(format!(
+                                "ACP prompt timed out after {prompt_timeout_secs}s"
+                            ))),
                             AGENT_METHOD_NAMES.session_prompt,
                         );
                     }
