@@ -5,79 +5,79 @@ import { defineMessages, useIntl } from '../../i18n';
 const i18n = defineMessages({
   readyToGetStarted: {
     id: 'greeting.readyToGetStarted',
-    defaultMessage: 'Ready to get started?',
+    defaultMessage: 'SiYuan is ready. What shall we do?',
   },
   whatToWorkOn: {
     id: 'greeting.whatToWorkOn',
-    defaultMessage: 'What would you like to work on?',
+    defaultMessage: 'What should SiYuan work on?',
   },
   readyToBuild: {
     id: 'greeting.readyToBuild',
-    defaultMessage: 'Ready to build something amazing?',
+    defaultMessage: 'Ready to build with SiYuan?',
   },
   whatToExplore: {
     id: 'greeting.whatToExplore',
-    defaultMessage: 'What would you like to explore?',
+    defaultMessage: 'What should SiYuan explore?',
   },
   whatsOnYourMind: {
     id: 'greeting.whatsOnYourMind',
-    defaultMessage: "What's on your mind?",
+    defaultMessage: 'What should SiYuan help with?',
   },
   whatShallWeCreate: {
     id: 'greeting.whatShallWeCreate',
-    defaultMessage: 'What shall we create today?',
+    defaultMessage: 'What shall SiYuan create today?',
   },
   whatProjectNeedsAttention: {
     id: 'greeting.whatProjectNeedsAttention',
-    defaultMessage: 'What project needs attention?',
+    defaultMessage: 'What project should SiYuan help with?',
   },
   whatToTackle: {
     id: 'greeting.whatToTackle',
-    defaultMessage: 'What would you like to tackle?',
+    defaultMessage: 'What should SiYuan tackle?',
   },
   whatNeedsToBeDone: {
     id: 'greeting.whatNeedsToBeDone',
-    defaultMessage: 'What needs to be done?',
+    defaultMessage: 'What should SiYuan do next?',
   },
   whatsThePlan: {
     id: 'greeting.whatsThePlan',
-    defaultMessage: "What's the plan for today?",
+    defaultMessage: 'What is SiYuan helping with today?',
   },
   readyToCreateGreat: {
     id: 'greeting.readyToCreateGreat',
-    defaultMessage: 'Ready to create something great?',
+    defaultMessage: 'Ready to create with SiYuan?',
   },
   whatCanBeBuilt: {
     id: 'greeting.whatCanBeBuilt',
-    defaultMessage: 'What can be built today?',
+    defaultMessage: 'What can SiYuan build today?',
   },
   whatsNextChallenge: {
     id: 'greeting.whatsNextChallenge',
-    defaultMessage: "What's the next challenge?",
+    defaultMessage: 'What should SiYuan tackle next?',
   },
   whatProgress: {
     id: 'greeting.whatProgress',
-    defaultMessage: 'What progress can be made?',
+    defaultMessage: 'What progress can SiYuan make?',
   },
   whatToAccomplish: {
     id: 'greeting.whatToAccomplish',
-    defaultMessage: 'What would you like to accomplish?',
+    defaultMessage: 'What should SiYuan accomplish?',
   },
   whatTaskAwaits: {
     id: 'greeting.whatTaskAwaits',
-    defaultMessage: 'What task awaits?',
+    defaultMessage: 'What task awaits SiYuan?',
   },
   whatsTheMission: {
     id: 'greeting.whatsTheMission',
-    defaultMessage: "What's the mission today?",
+    defaultMessage: "What is SiYuan's mission today?",
   },
   whatCanBeAchieved: {
     id: 'greeting.whatCanBeAchieved',
-    defaultMessage: 'What can be achieved?',
+    defaultMessage: 'What can SiYuan achieve?',
   },
   whatProjectReadyToBegin: {
     id: 'greeting.whatProjectReadyToBegin',
-    defaultMessage: 'What project is ready to begin?',
+    defaultMessage: 'What project should SiYuan begin?',
   },
 });
 

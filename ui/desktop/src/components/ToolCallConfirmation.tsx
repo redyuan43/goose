@@ -9,7 +9,7 @@ const i18n = defineMessages({
   },
   gooseWouldLikeToCall: {
     id: 'toolConfirmation.gooseWouldLikeToCall',
-    defaultMessage: 'Goose would like to call the above tool. Allow?',
+    defaultMessage: 'SiYuan would like to call the above tool. Allow?',
   },
 });
 
