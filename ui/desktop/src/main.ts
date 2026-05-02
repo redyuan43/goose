@@ -118,6 +118,8 @@ async function configureProxy() {
 
 if (started) app.quit();
 
+app.setName('SiYuan');
+
 // Certificate trust for goosed servers (local and external).
 // Both certificate-error (renderer) and setCertificateVerifyProc (main-process
 // net.fetch) pin to the exact cert fingerprint. For locally-spawned goosed the
@@ -407,7 +409,7 @@ app.on('open-url', async (_event, url) => {
 app.on('will-finish-launching', () => {
   if (process.platform === 'darwin') {
     app.setAboutPanelOptions({
-      applicationName: 'Goose',
+      applicationName: 'SiYuan',
       applicationVersion: app.getVersion(),
     });
   }
@@ -462,7 +464,7 @@ async function handleFileOpen(filePath: string) {
 
     // Show user-friendly error notification
     new Notification({
-      title: 'Goose',
+      title: 'SiYuan',
       body: `Could not open directory: ${path.basename(filePath)}`,
     }).show();
   }
@@ -650,6 +652,7 @@ const createChat = async (app: App, options: CreateChatOptions = {}) => {
   });
 
   const mainWindow = new BrowserWindow({
+    title: 'SiYuan',
     titleBarStyle: process.platform === 'darwin' ? 'hidden' : 'default',
     trafficLightPosition: process.platform === 'darwin' ? { x: 20, y: 16 } : undefined,
     vibrancy: process.platform === 'darwin' ? 'window' : undefined,
@@ -755,7 +758,7 @@ const createChat = async (app: App, options: CreateChatOptions = {}) => {
     } else {
       dialog.showMessageBoxSync({
         type: 'error',
-        title: 'Goose Failed to Start',
+        title: 'SiYuan Failed to Start',
         message: 'The backend server failed to start.',
         detail: failureDetailParts.join('\n\n'),
         buttons: ['OK'],
@@ -1931,7 +1934,7 @@ async function appMain() {
 
   const shortcuts = getKeyboardShortcuts(settings);
 
-  const appMenu = menu?.items.find((item) => item.label === 'Goose');
+  const appMenu = menu?.items.find((item) => item.label === 'SiYuan');
   if (appMenu?.submenu) {
     appMenu.submenu.insert(1, new MenuItem({ type: 'separator' }));
     if (shortcuts.settings) {
@@ -2059,7 +2062,7 @@ async function appMain() {
     if (shortcuts.focusWindow) {
       fileMenu.submenu.append(
         new MenuItem({
-          label: 'Focus Goose Window',
+          label: 'Focus SiYuan Window',
           accelerator: shortcuts.focusWindow,
           click() {
             focusWindow();
@@ -2166,13 +2169,13 @@ async function appMain() {
         helpMenu.submenu.append(new MenuItem({ type: 'separator' }));
       }
 
-      // Create the About Goose menu item with a submenu
+      // Create the About menu item with a submenu
       const aboutGooseMenuItem = new MenuItem({
-        label: 'About Goose',
+        label: 'About SiYuan',
         submenu: Menu.buildFromTemplate([]), // Start with an empty submenu for About
       });
 
-      // Add the Version menu item (display only) to the About Goose submenu
+      // Add the Version menu item (display only) to the About submenu
       if (aboutGooseMenuItem.submenu) {
         aboutGooseMenuItem.submenu.append(
           new MenuItem({
@@ -2517,7 +2520,7 @@ app.whenReady().then(async () => {
   try {
     await appMain();
   } catch (error) {
-    dialog.showErrorBox('Goose Error', `Failed to create main window: ${error}`);
+    dialog.showErrorBox('SiYuan Error', `Failed to create main window: ${error}`);
     app.quit();
   }
 });

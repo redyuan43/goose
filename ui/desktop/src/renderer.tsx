@@ -24,7 +24,7 @@ const TELEMETRY_CONFIG_KEY = 'GOOSE_TELEMETRY_ENABLED';
   if (!isLauncher) {
     const gooseApiHost = await window.electron.getGoosedHostPort();
     if (gooseApiHost === null) {
-      window.alert('failed to start goose backend process');
+      window.alert('failed to start SiYuan backend process');
       return;
     }
     client.setConfig({

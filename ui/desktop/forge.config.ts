@@ -34,9 +34,9 @@ let cfg = {
     ],
     // Usage descriptions for macOS TCC (Transparency, Consent, and Control)
     NSCalendarsUsageDescription:
-      'Goose needs access to your calendars to help manage and query calendar events.',
+      'SiYuan needs access to your calendars to help manage and query calendar events.',
     NSRemindersUsageDescription:
-      'Goose needs access to your reminders to help manage and query reminders.',
+      'SiYuan needs access to your reminders to help manage and query reminders.',
   },
 };
 
@@ -85,9 +85,9 @@ module.exports = {
     {
       name: '@electron-forge/maker-deb',
       config: {
-        name: 'Goose',
-        bin: 'Goose',
-        maintainer: 'AAIF (Agentic AI Foundation)',
+        name: 'SiYuan',
+        bin: 'SiYuan',
+        maintainer: 'Bus Digital Corp (BDC)',
         homepage: 'https://goose-docs.ai/',
         categories: ['Development'],
         desktopTemplate: './forge.deb.desktop',
@@ -100,9 +100,9 @@ module.exports = {
     {
       name: '@electron-forge/maker-rpm',
       config: {
-        name: 'Goose',
-        bin: 'Goose',
-        maintainer: 'AAIF (Agentic AI Foundation)',
+        name: 'SiYuan',
+        bin: 'SiYuan',
+        maintainer: 'Bus Digital Corp (BDC)',
         homepage: 'https://goose-docs.ai/',
         categories: ['Development'],
         desktopTemplate: './forge.rpm.desktop',
@@ -126,7 +126,7 @@ module.exports = {
           homepage: 'https://goose-docs.ai/',
           runtimeVersion: '25.08',
           baseVersion: '25.08',
-          bin: 'Goose',
+          bin: 'SiYuan',
           modules: [
             {
               name: 'libbz2-shim',

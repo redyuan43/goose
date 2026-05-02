@@ -68,8 +68,16 @@ mkdir -p src/bin
 cp ../../target/release/goosed src/bin/
 ```
 
+`pnpm run package`, `pnpm run make`, and Electron Forge copy `src/bin/goosed`
+into the packaged app. Always run the two commands above after changing Rust
+backend prompts or server code; otherwise the UI may be rebuilt while the app
+still launches a stale `goosed` binary from `src/bin`.
+
 3. Build the application:
 ```bash
+# For local validation
+pnpm run package
+
 # For ZIP distribution (works on all Linux distributions)
 pnpm run make --targets=@electron-forge/maker-zip
 
@@ -81,6 +89,8 @@ pnpm run make --targets=@electron-forge/maker-flatpak
 ```
 
 The built application will be available in:
+- Local package: `out/SiYuan-linux-x64/SiYuan` (or `out/goose-linux-x64/goose`
+  when using the upstream bundle name)
 - ZIP: `out/make/zip/linux/x64/goose-linux-x64-{version}.zip`
 - DEB: `out/make/deb/x64/goose_{version}_amd64.deb`
 - Flatpak: `out/make/flatpak/x86_64/*.flatpak`
